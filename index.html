@@ -102,6 +102,12 @@
     --c-gw:#ffcf5b;
     --c-lb:#37e8c0;
     --c-user:#9db0cd;
+    --c-us:#37e8c0;
+    --c-eu:#5b9dff;
+    --c-ap:#a583ff;
+    --c-evt:#ffcf5b;
+    --c-write:#ff9f6b;
+    --c-consumer:#7be0a8;
     --c-dead:#ff5f63;
     --accent:#37e8c0;
     --accent-2:#5b9dff;
@@ -179,7 +185,7 @@
 
   .sim-body{display:grid;grid-template-columns:1fr 270px}
   @media(max-width:880px){.sim-body{grid-template-columns:1fr}}
-  .canvas-wrap{position:relative;background:radial-gradient(ellipse at 50% 40%,#0c1322,#070b12);min-height:430px}
+  .canvas-wrap{position:relative;background:radial-gradient(ellipse at 50% 40%,#0c1322,#070b12);min-height:560px}
   #sim{display:block;width:100%;height:100%}
   .sim-toast{position:absolute;top:14px;left:50%;transform:translateX(-50%) translateY(-12px);background:rgba(13,20,34,.95);border:1px solid var(--border-glow);border-radius:10px;padding:9px 16px;font-family:var(--mono);font-size:.82rem;color:var(--text);opacity:0;transition:.35s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.5)}
   .sim-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -208,6 +214,15 @@
   .legend{font-family:var(--mono);font-size:.7rem;color:var(--text-faint);display:flex;flex-wrap:wrap;gap:9px;margin-top:2px}
   .legend span{display:flex;align-items:center;gap:5px}
   .legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+  /* region controls */
+  .regions{display:flex;flex-direction:column;gap:7px}
+  .reg-lbl{font-family:var(--mono);font-size:.72rem;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center}
+  .reg-lbl span{color:var(--text-faint);font-size:.66rem}
+  .regbtn{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:.8rem;padding:8px 11px;border-radius:9px;border:1px solid var(--border);background:var(--bg-2);color:var(--text-dim);cursor:pointer;transition:.18s}
+  .regbtn:hover{border-color:var(--border-glow);color:var(--text)}
+  .regbtn .rdot{width:9px;height:9px;border-radius:50%;flex:none}
+  .regbtn b{margin-left:auto;color:var(--text);font-weight:600}
+  .regbtn.surge{border-color:var(--accent);background:var(--accent-soft)}
   .spark-wrap{margin-top:2px}
   .spark-lbl{font-family:var(--mono);font-size:.7rem;color:var(--text-faint);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
   .spark-lbl b{color:var(--accent);font-weight:600}
@@ -570,22 +585,24 @@
   <div class="sim-shell">
     <div class="sim-top">
       <div class="dot3"><i class="r"></i><i class="y"></i><i class="g"></i></div>
-      <div class="ttl"><b>prod-cluster</b> · us-east-1 · live request flow</div>
+      <div class="ttl"><b>prod-cluster</b> · multi-region · live request flow</div>
       <div class="sim-status" id="simStatus"><span class="blip"></span><span id="simStatusTxt">HEALTHY</span></div>
     </div>
     <div class="sim-body">
       <div class="canvas-wrap">
-        <canvas id="sim" role="img" aria-label="Live distributed-system diagram: client requests flow through a load balancer and API gateway to auto-scaling Spring microservices, then to a MongoDB datastore, Redis cache and Kafka event bus, and back."></canvas>
+        <canvas id="sim" role="img" aria-label="Live multi-region distributed-system diagram: traffic from US-East, EU-West and APAC hits a CDN edge (about a third served from cache), then a global load balancer and API gateway, then a region-aware auto-scaling Spring microservice pool, then a multi-region MongoDB replica set, per-region sharded Redis clusters, and a Kafka event bus that fans out to Analytics, Notifications and Search-Index consumers."></canvas>
         <div class="sr-only">
           <h3>What this interactive diagram represents</h3>
-          <p>A production-style distributed backend that Jeremiah Seagraves designs and operates. Requests travel left to right and back: Clients to Load Balancer to API Gateway to one of several auto-scaling Spring (Java) microservices, then to a data tier of MongoDB (primary store), Redis (cache) and Kafka (event bus). Raising traffic adds microservice instances automatically; failing a node reroutes traffic to healthy instances with zero dropped requests, demonstrating zero-downtime resilience.</p>
+          <p>A production-style, multi-region distributed backend that Jeremiah Seagraves designs and operates. Client traffic originates from three regions — US-East, EU-West and APAC — and first hits a CDN edge that terminates TLS, runs WAF protection, and serves roughly a third of requests straight from cache without touching the backend. Cache misses flow through a global load balancer and API gateway into a pool of auto-scaling Spring (Java) microservices. Instances scale up and down per region as that region's traffic rises or falls. Reads hit a per-region sharded Redis cluster (keys hashed to a shard) or a multi-region MongoDB replica set (region-local reads from secondaries, writes to the primary region); writes also publish events to a Kafka topic, partitioned across P0–P2, which fan out to downstream consumers: Analytics, Notifications and a Search index. Raising traffic adds instances automatically; failing a node reroutes traffic to healthy instances with zero dropped requests, demonstrating zero-downtime resilience.</p>
           <ul>
-            <li>Load Balancer — distributes traffic and health-checks instances; reflects CI/CD and deploy-reliability work at Nordstrom.</li>
+            <li>Regions (US-East, EU-West, APAC) — geographically distributed client traffic with shiftable load.</li>
+            <li>CDN / Edge — TLS termination, WAF/DDoS protection, and edge caching; serves cacheable requests from the nearest POP.</li>
+            <li>Global Load Balancer — distributes traffic and health-checks instances; reflects CI/CD and deploy-reliability work at Nordstrom.</li>
             <li>API Gateway — REST and gRPC entrypoints; reflects APIs that onboarded 14,000+ restaurants at OpenTable and gRPC tax-validation services at Expedia.</li>
-            <li>Spring Microservices — Java 11–21 services with idempotency, retries and dependency injection; the core of every role held.</li>
-            <li>MongoDB — real-time Change Stream sync with resume tokens and distributed locking; cut sync latency 85% at 99.9% uptime at Optum.</li>
-            <li>Redis — low-latency caching layer across OpenTable, Nordstrom and Expedia.</li>
-            <li>Kafka — event streaming for cross-service consistency at OpenTable, Expedia and Optum.</li>
+            <li>Spring Microservices — region-aware, auto-scaling Java 11–21 services with idempotency, retries and dependency injection; the core of every role held.</li>
+            <li>MongoDB replica set (multi-region) — region-local reads from secondaries, writes to the primary region; real-time Change Stream sync with resume tokens and distributed locking; cut sync latency 85% at 99.9% uptime at Optum.</li>
+            <li>Redis cluster (per region) — each region runs its own sharded, read-local cache with key-based routing across OpenTable, Nordstrom and Expedia.</li>
+            <li>Kafka — partitioned event streaming fanning out to Analytics, Notifications and Search-Index consumers for cross-service consistency at OpenTable, Expedia and Optum.</li>
           </ul>
         </div>
         <div class="sim-toast" id="toast"><span class="ic">▲</span> <span id="toastMsg"></span></div>
@@ -608,6 +625,12 @@
           <label for="load">Traffic load <b id="loadLbl">balanced</b></label>
           <input type="range" id="load" min="1" max="100" value="32" aria-label="Traffic load — drag to increase requests per second and auto-scale the cluster" />
         </div>
+        <div class="regions">
+          <div class="reg-lbl">Traffic by region <span>tap to surge</span></div>
+          <button class="regbtn" data-reg="us" aria-label="Surge US-East traffic"><span class="rdot" style="background:var(--c-us)"></span>US-East<b id="rUs">0</b></button>
+          <button class="regbtn" data-reg="eu" aria-label="Surge EU-West traffic"><span class="rdot" style="background:var(--c-eu)"></span>EU-West<b id="rEu">0</b></button>
+          <button class="regbtn" data-reg="ap" aria-label="Surge APAC traffic"><span class="rdot" style="background:var(--c-ap)"></span>APAC<b id="rAp">0</b></button>
+        </div>
         <div class="sim-btns">
           <button class="sbtn danger" id="chaosBtn">💥 Trigger chaos <span class="k">kill node</span></button>
           <button class="sbtn" id="healBtn">✚ Heal cluster <span class="k">restore</span></button>
@@ -617,8 +640,11 @@
           <canvas id="spark" class="spark"></canvas>
         </div>
         <div class="legend">
-          <span><i style="background:var(--c-req)"></i>request</span>
-          <span><i style="background:var(--c-res)"></i>response</span>
+          <span><i style="background:var(--c-us)"></i>US read</span>
+          <span><i style="background:var(--c-eu)"></i>EU read</span>
+          <span><i style="background:var(--c-ap)"></i>APAC read</span>
+          <span><i style="background:var(--c-write)"></i>write</span>
+          <span><i style="background:var(--c-evt)"></i>event</span>
           <span><i style="background:var(--c-dead)"></i>failed</span>
         </div>
       </div>
@@ -938,312 +964,267 @@ document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 })();
 </script>
 <script>
-/* ===== DISTRIBUTED SYSTEM SIMULATOR v2 ===== */
+/* ===== DISTRIBUTED SYSTEM SIMULATOR v3 — multi-region ===== */
 (function(){
   const canvas=document.getElementById('sim');
+  if(!canvas) return;
   const ctx=canvas.getContext('2d');
   const wrap=canvas.parentElement;
   let W=0,H=0,DPR=Math.min(devicePixelRatio||1,2);
   const css=getComputedStyle(document.documentElement);
   const COL=k=>css.getPropertyValue(k).trim();
-  const C={req:COL('--c-req'),res:COL('--c-res'),mongo:COL('--c-mongo'),redis:COL('--c-redis'),kafka:COL('--c-kafka'),svc:COL('--c-svc'),gw:COL('--c-gw'),lb:COL('--c-lb'),user:COL('--c-user'),dead:COL('--c-dead'),edge:COL('--c-edge')};
-  function hexA(hex,a){hex=hex.replace('#','');const n=parseInt(hex,16);return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';}
+  const C={us:COL('--c-us'),eu:COL('--c-eu'),ap:COL('--c-ap'),evt:COL('--c-evt'),cons:COL('--c-consumer'),
+           mongo:COL('--c-mongo'),redis:COL('--c-redis'),kafka:COL('--c-kafka'),gw:COL('--c-gw'),lb:COL('--c-lb'),
+           write:COL('--c-write')||'#ff9f6b',dead:COL('--c-dead'),edge:COL('--c-edge')};
+  function hexA(hex,a){hex=hex.replace('#','');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');const n=parseInt(hex,16);return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';}
+  const lerp=(a,b,t)=>a+(b-a)*t;
 
-  /* ---- fixed infra nodes ---- */
+  const REG=[{id:'us',name:'US-East',col:C.us},{id:'eu',name:'EU-West',col:C.eu},{id:'ap',name:'APAC',col:C.ap}];
+  const base={us:.40,eu:.34,ap:.26};
+  const w={us:.40,eu:.34,ap:.26};
+  function normW(){const s=(w.us+w.eu+w.ap)||1;w.us/=s;w.eu/=s;w.ap/=s;}
+
   const infra=[
-    {id:'user', nx:.08, ny:.5, r:24, label:'Clients', color:C.user, type:'user', vis:1, alive:true,
-      title:'Clients', tag:'ingress', desc:'Healthcare, travel & e-commerce platforms generating traffic at scale — the systems I build serve millions of these.', stack:'UnitedHealth · OpenTable · Nordstrom · Expedia'},
-    {id:'lb', nx:.26, ny:.5, r:26, label:'Load\\nBalancer', color:C.lb, type:'lb', vis:1, alive:true,
-      title:'Load Balancer', tag:'routing', desc:'Distributes traffic and health-checks instances. I modernized CI/CD and deploy reliability at Nordstrom across US & Canada storefronts.', stack:'AWS · health checks · zero-downtime deploys'},
-    {id:'gw', nx:.43, ny:.5, r:26, label:'API\\nGateway', color:C.gw, type:'gw', vis:1, alive:true,
-      title:'API Gateway', tag:'edge', desc:'REST & gRPC entrypoints. Built APIs that onboarded 14,000+ restaurants at OpenTable and gRPC tax-validation services at Expedia.', stack:'Spring MVC/WebFlux · gRPC · REST'},
-    {id:'mongo', nx:.88, ny:.20, r:25, label:'MongoDB', color:C.mongo, type:'db', vis:1, alive:true,
-      title:'MongoDB', tag:'primary store', desc:'Real-time Change Stream sync with resume tokens & distributed locking — cut sync latency 85% at 99.9% uptime (Optum Health Plan tool).', stack:'Change Streams · resume tokens · distributed locking'},
-    {id:'redis', nx:.88, ny:.5, r:23, label:'Redis', color:C.redis, type:'cache', vis:1, alive:true,
-      title:'Redis', tag:'cache', desc:'Low-latency caching layer paired with Kafka across OpenTable, Nordstrom and Expedia to keep hot paths fast.', stack:'Redis · caching · read-through'},
-    {id:'kafka', nx:.88, ny:.80, r:24, label:'Kafka', color:C.kafka, type:'bus', vis:1, alive:true,
-      title:'Kafka', tag:'event bus', desc:'Event streaming for consistency across services. Backbone of data consistency at OpenTable, Expedia and Optum.', stack:'Kafka · AVRO · idempotent consumers'}
+    {id:'us',nx:.05,ny:.18,r:18,label:'US-East',color:C.us,type:'region',title:'US-East region',tag:'ingress',desc:'North-America client traffic. The global load balancer routes each user to the nearest healthy region.',stack:'geo-routing · health checks'},
+    {id:'eu',nx:.05,ny:.50,r:18,label:'EU-West',color:C.eu,type:'region',title:'EU-West region',tag:'ingress',desc:'European client traffic with region-aware routing.',stack:'geo-routing · low latency'},
+    {id:'ap',nx:.05,ny:.82,r:18,label:'APAC',color:C.ap,type:'region',title:'APAC region',tag:'ingress',desc:'Asia-Pacific client traffic. The service pool auto-scales here as APAC load rises.',stack:'geo-routing · autoscale'},
+    {id:'cdn',nx:.145,ny:.50,r:21,label:['CDN','Edge'],color:'#7bd8ff',type:'cdn',title:'CDN / Edge',tag:'edge cache + WAF',desc:'Global edge POPs terminate TLS, run WAF/DDoS protection, and cache static + cacheable responses. Roughly a third of requests are served straight from the nearest edge and never reach the backend.',stack:'CloudFront/Cloudflare · TLS · WAF · edge cache'},
+    {id:'lb',nx:.25,ny:.50,r:23,label:['Global','LB'],color:C.lb,type:'lb',title:'Global Load Balancer',tag:'routing',desc:'Behind the CDN. Geo + health-aware distribution that steers each request to the nearest healthy region. Modernized CI/CD and deploy reliability at Nordstrom.',stack:'AWS · health checks · zero-downtime'},
+    {id:'gw',nx:.36,ny:.50,r:23,label:['API','Gateway'],color:C.gw,type:'gw',title:'API Gateway',tag:'edge',desc:'Per-region routing, auth, rate-limiting. REST & gRPC entrypoints. Built APIs that onboarded 14,000+ restaurants at OpenTable and gRPC tax-validation at Expedia.',stack:'Spring MVC/WebFlux · gRPC'},
+    {id:'mongoP',nx:.62,ny:.13,r:19,label:'PRI',color:C.mongo,type:'db',title:'MongoDB — primary',tag:'writes',desc:'The single write primary for its shard. All writes land here, then replicate to the secondaries. Real-time Change Stream sync with resume tokens and distributed locking; 85% lower sync latency at 99.9% uptime (Optum).',stack:'primary · change streams · distributed locking'},
+    {id:'mongoS1',nx:.725,ny:.075,r:13,label:'REP',color:C.mongo,type:'db',title:'MongoDB — secondary (replica)',tag:'region-local reads',desc:'A replicating secondary. Reads can be served region-locally from here to cut latency, while writes always go to the primary.',stack:'secondary · replication · read scaling'},
+    {id:'mongoS2',nx:.725,ny:.185,r:13,label:'REP',color:C.mongo,type:'db',title:'MongoDB — secondary (replica)',tag:'region-local reads',desc:'A second replicating secondary for read scaling and disaster recovery. Promotes to primary automatically on failover.',stack:'secondary · failover · DR'},
+    {id:'redis0',nx:.60,ny:.40,r:15,label:'0',color:C.redis,type:'cache',title:'Redis — shard 0',tag:'sharded cache',desc:'One shard of a per-region Redis cluster. Keys are hashed to a shard for low-latency, read-local caching.',stack:'shard · hash slot · read-through'},
+    {id:'redis1',nx:.695,ny:.365,r:15,label:'1',color:C.redis,type:'cache',title:'Redis — shard 1',tag:'sharded cache',desc:'One shard of a per-region Redis cluster. Keys are hashed to a shard for low-latency, read-local caching.',stack:'shard · hash slot · read-through'},
+    {id:'redis2',nx:.695,ny:.455,r:15,label:'2',color:C.redis,type:'cache',title:'Redis — shard 2',tag:'sharded cache',desc:'One shard of a per-region Redis cluster. Keys are hashed to a shard for low-latency, read-local caching.',stack:'shard · hash slot · read-through'},
+    {id:'kafka',nx:.61,ny:.72,r:20,label:'Kafka',color:C.kafka,type:'bus',title:'Kafka event bus',tag:'partitioned topic',desc:'Partitioned event log (P0-P2). Writes publish events that fan out to downstream consumers with idempotent processing.',stack:'partitions · AVRO · consumer groups'},
+    {id:'cA',nx:.87,ny:.59,r:16,label:'Analytics',color:C.cons,type:'consumer',title:'Analytics consumer',tag:'kafka consumer',desc:'Consumes the event stream for real-time analytics and KPIs.',stack:'Kafka consumer · streaming'},
+    {id:'cN',nx:.87,ny:.76,r:16,label:'Notify',color:C.cons,type:'consumer',title:'Notifications consumer',tag:'kafka consumer',desc:'Sends user notifications off the event stream.',stack:'Kafka consumer · idempotent'},
+    {id:'cS',nx:.87,ny:.93,r:16,label:'Search',color:C.cons,type:'consumer',title:'Search-Index consumer',tag:'kafka consumer',desc:'Keeps a search index in sync via events.',stack:'Kafka consumer · indexing'}
   ];
-
-  /* ---- fixed pool of 4 Spring service slots (scale in/out, never churned) ---- */
-  const SVC_MAX=4, SVC_X=.625;
+  const SVC_MAX=6, SVC_X=.475;
   const pool=[];
-  for(let i=0;i<SVC_MAX;i++){
-    pool.push({id:'svc'+i, slot:i, nx:SVC_X, ny:.5, r:20, label:'Spring\\nSvc', color:C.svc, type:'svc',
-      active:i<2, alive:true, vis:i<2?1:0,
-      title:'Spring Microservice', tag:'compute', desc:'Java 11–21 + Spring microservices — the core of every role I have held. Idempotency, retries, dependency injection via Spring Core IoC, JUnit-tested.', stack:'Java 21 · Spring Boot · IoC · JUnit/AssertJ'});
-  }
-  function activeServices(){return pool.filter(s=>s.active);}
-  function routableServices(){return pool.filter(s=>s.active&&s.alive);}
-  function visibleServices(){return pool.filter(s=>s.vis>0.02||s.active);}
-  function setServiceCount(n){
-    n=Math.max(1,Math.min(SVC_MAX,n));
-    pool.forEach((s,i)=>{
-      const nowActive=i<n;
-      if(nowActive&&!s.active){s.alive=true;}   // a re-activated slot comes back healthy
-      s.active=nowActive;
-    });
-  }
-  function layoutServices(){
-    const act=activeServices();
-    act.forEach((s,i)=>{ s.tny = act.length===1?.5 : .26 + (i/(act.length-1))*0.48; });
-    pool.forEach(s=>{ if(s.tny==null)s.tny=s.ny; });
-  }
+  for(let i=0;i<SVC_MAX;i++) pool.push({id:'svc'+i,slot:i,nx:SVC_X,ny:.5,tny:.5,r:16,label:'Spring',color:C.us,type:'svc',active:i<2,alive:true,vis:i<2?1:0,reg:'us',
+    title:'Spring Microservice',tag:'compute',desc:'Region-aware, auto-scaling Java 11-21 microservice. Idempotency, retries, dependency injection via Spring Core IoC, JUnit-tested.',stack:'Java 21 · Spring Boot · IoC · JUnit'});
 
   const all=()=>infra.concat(pool);
-  const byId=id=>all().find(n=>n.id===id);
-  function px(n){const s=Math.min(W,H)/430;return {x:n.nx*W, y:n.ny*H, r:n.r*s*(0.35+0.65*n.vis)};}
-  function ctr(id){const n=byId(id);if(!n)return null;return {x:n.nx*W,y:n.ny*H};}
+  function byId(id){for(const n of infra) if(n.id===id) return n; for(const s of pool) if(s.id===id) return s; return null;}
+  function sc(){return Math.min(W,H)/560;}
+  function center(id){const n=byId(id);return {x:n.nx*W,y:n.ny*H};}
+  function pt(id){return center(id);}
+  function px(n){const s=sc();const v=(n.vis==null?1:n.vis);return {x:n.nx*W,y:n.ny*H,r:n.r*s*(0.4+0.6*v)};}
 
-  /* ---- bezier path helpers (smooth S-curves, left→right flow) ---- */
-  function seg(aId,bId){const A=ctr(aId),B=ctr(bId);const mx=(A.x+B.x)/2;return {A,B,c1:{x:mx,y:A.y},c2:{x:mx,y:B.y}};}
-  function bez(s,t){const u=1-t;const x=u*u*u*s.A.x+3*u*u*t*s.c1.x+3*u*t*t*s.c2.x+t*t*t*s.B.x;const y=u*u*u*s.A.y+3*u*u*t*s.c1.y+3*u*t*t*s.c2.y+t*t*t*s.B.y;return {x,y};}
-
-  /* ---- edges + activity glow ---- */
-  const edgeAct={};
-  function edgeKey(a,b){return a+'>'+b;}
-  function logicalEdges(){
-    const e=[['user','lb'],['lb','gw']];
-    visibleServices().forEach(s=>{e.push(['gw',s.id]);['mongo','redis','kafka'].forEach(d=>e.push([s.id,d]));});
-    return e;
+  function activeServices(){return pool.filter(s=>s.active);}
+  function routable(){return pool.filter(s=>s.active&&s.alive);}
+  function regionRoutable(reg){return pool.filter(s=>s.active&&s.alive&&s.reg===reg);}
+  function tierFor(v){return v<18?1:v<38?2:v<58?3:v<76?4:v<90?5:6;}
+  function setCount(n){n=Math.max(1,Math.min(SVC_MAX,n));pool.forEach((s,i)=>{const a=i<n;if(a&&!s.active)s.alive=true;s.active=a;});}
+  function assignRegions(){
+    const act=activeServices();const n=act.length;
+    const raw=[['us',w.us*n],['eu',w.eu*n],['ap',w.ap*n]];
+    const counts={us:0,eu:0,ap:0};let used=0;
+    raw.forEach(x=>{counts[x[0]]=Math.floor(x[1]);used+=counts[x[0]];});
+    const rem=raw.map(x=>[x[0],x[1]-Math.floor(x[1])]).sort((a,b)=>b[1]-a[1]);
+    let k=0;while(used<n){counts[rem[k%3][0]]++;used++;k++;}
+    const order=[];['us','eu','ap'].forEach(r=>{for(let i=0;i<counts[r];i++)order.push(r);});
+    const colmap={us:C.us,eu:C.eu,ap:C.ap};
+    act.forEach((s,i)=>{s.reg=order[i]||'us';s.color=colmap[s.reg];});
   }
+  function layout(){const act=activeServices();act.forEach((s,i)=>{s.tny=act.length===1?.5:.14+(i/(act.length-1))*.72;});}
 
-  /* ---- requests: full round-trip, always complete ---- */
-  const MAX=820;
-  const reqs=[];
-  let servedTotal=0;
-  function spawn(){
-    if(reqs.length>=MAX) return; // shed load instead of splicing in-flight
-    const avail=routableServices();
-    if(avail.length===0) return;
+  const MAX=900;const parts=[];let served=0;
+  function seg(aId,bId){const A=pt(aId),B=pt(bId);const mx=(A.x+B.x)/2;return {A:A,B:B,c1:{x:mx,y:A.y},c2:{x:mx,y:B.y}};}
+  function bez(s,t){const u=1-t;return {x:u*u*u*s.A.x+3*u*u*t*s.c1.x+3*u*t*t*s.c2.x+t*t*t*s.B.x,y:u*u*u*s.A.y+3*u*u*t*s.c1.y+3*u*t*t*s.c2.y+t*t*t*s.B.y};}
+  function pickRegion(){const r=Math.random();if(r<w.us)return REG[0];if(r<w.us+w.eu)return REG[1];return REG[2];}
+  function spawnReq(){
+    if(parts.length>=MAX)return;
+    const reg=pickRegion();
+    if(Math.random()<.32){ // served from the edge cache — never touches the backend
+      const fwd=[reg.id,'cdn'];
+      parts.push({route:fwd.concat(fwd.slice(0,-1).reverse()),fwdLen:fwd.length-1,p:0,svc:null,col:reg.col,kind:'hit',dying:false,deadT:0,speed:.026+Math.random()*.006});
+      return;
+    }
+    let avail=regionRoutable(reg.id);if(!avail.length)avail=routable();if(!avail.length)return;
     const svc=avail[(Math.random()*avail.length)|0];
-    const backend=['mongo','redis','redis','kafka'][(Math.random()*4)|0];
-    const fwd=['user','lb','gw',svc.id,backend];
-    const full=fwd.concat(fwd.slice(0,-1).reverse()); // user..backend..user
-    reqs.push({route:full, fwdLen:fwd.length-1, p:0, svc:svc.id, backend, dying:false, deadT:0,
-      speed:0.020+Math.random()*0.006, jitter:Math.random()*0.5});
+    const roll=Math.random();
+    let backend,col,write=false;
+    if(roll<.45){backend='redis'+((Math.random()*3)|0);col=reg.col;}
+    else if(roll<.70){backend=Math.random()<.5?'mongoS1':'mongoS2';col=reg.col;}
+    else{backend='mongoP';col=C.write;write=true;}
+    const fwd=[reg.id,'cdn','lb','gw',svc.id,backend];
+    parts.push({route:fwd.concat(fwd.slice(0,-1).reverse()),fwdLen:fwd.length-1,p:0,svc:svc.id,col:col,kind:'req',dying:false,deadT:0,speed:.020+Math.random()*.006});
+    if(write){const cons=['cA','cN','cS'][(Math.random()*3)|0];parts.push({route:[svc.id,'kafka',cons],fwdLen:99,p:0,col:C.evt,kind:'event',dying:false,deadT:0,speed:.018+Math.random()*.005});}
+  }
+  function spawnEvent(){
+    if(parts.length>=MAX)return;
+    const av=routable();if(!av.length)return;
+    const svc=av[(Math.random()*av.length)|0];
+    const cons=['cA','cN','cS'][(Math.random()*3)|0];
+    parts.push({route:[svc.id,'kafka',cons],fwdLen:99,p:0,col:C.evt,kind:'event',dying:false,deadT:0,speed:.017+Math.random()*.005});
+  }
+  function spawnRepl(){
+    if(parts.length>=MAX)return;
+    parts.push({route:['mongoP',Math.random()<.5?'mongoS1':'mongoS2'],fwdLen:99,p:0,col:C.mongo,kind:'repl',dying:false,deadT:0,speed:.028});
   }
 
-  /* ---- metrics ---- */
+  const $=id=>document.getElementById(id);
+  const elRps=$('mRps'),elLat=$('mLat'),elUp=$('mUp'),elNodes=$('mNodes');
+  const statusEl=$('simStatus'),statusTxt=$('simStatusTxt'),sparkNow=$('sparkNow');
+  const elR={us:$('rUs'),eu:$('rEu'),ap:$('rAp')};
   let mRps=0,mLat=20,mUp=100,degradedUntil=0;
-  const elRps=document.getElementById('mRps'),elLat=document.getElementById('mLat'),elUp=document.getElementById('mUp'),elNodes=document.getElementById('mNodes');
-  const statusEl=document.getElementById('simStatus'),statusTxt=document.getElementById('simStatusTxt');
-  const sparkNow=document.getElementById('sparkNow');
 
-  /* ---- controls ---- */
-  const load=document.getElementById('load'),loadLbl=document.getElementById('loadLbl');
+  const load=$('load'),loadLbl=$('loadLbl');
   const loadVal=()=>+load.value;
   const targetRps=()=>Math.round(8+loadVal()*5.2);
-  function updLoadLbl(){const v=loadVal();loadLbl.textContent=v<25?'light':v<55?'balanced':v<80?'heavy':'peak / Black Friday';}
-  function tierFor(v){return v<30?1:v<55?2:v<80?3:4;}
-  load.addEventListener('input',()=>{updLoadLbl();setServiceCount(tierFor(loadVal()));layoutServices();if(window.__simRenderStatic)window.__simRenderStatic();});
-  updLoadLbl();layoutServices();
+  function updLbl(){const v=loadVal();loadLbl.textContent=v<25?'light':v<55?'balanced':v<80?'heavy':'peak / Black Friday';}
+  load.addEventListener('input',()=>{updLbl();setCount(tierFor(loadVal()));assignRegions();layout();if(window.__simRenderStatic)window.__simRenderStatic();});
+  updLbl();setCount(tierFor(loadVal()));assignRegions();layout();
 
-  const toast=document.getElementById('toast'),toastMsg=document.getElementById('toastMsg');
-  let toastTimer;
-  function showToast(msg,warn){toastMsg.textContent=msg;toast.classList.toggle('warn',!!warn);toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),2800);}
+  const toast=$('toast'),toastMsg=$('toastMsg');let toastTimer;
+  function showToast(m,warn){toastMsg.textContent=m;toast.classList.toggle('warn',!!warn);toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),2800);}
 
-  const bursts=[]; // death/heal rings
-  document.getElementById('chaosBtn').addEventListener('click',()=>{
-    const alive=routableServices();
-    if(alive.length<=1){showToast('Only one healthy node — raise traffic to scale out first, then break one.',true);return;}
-    const victim=alive[(Math.random()*alive.length)|0];victim.alive=false;
-    const c=ctr(victim.id);bursts.push({x:c.x,y:c.y,t:0,col:C.dead});
-    reqs.forEach(r=>{if(r.svc===victim.id && r.p<r.fwdLen){r.dying=true;}});
+  document.querySelectorAll('.regbtn').forEach(b=>{
+    b.addEventListener('click',()=>{const r=b.getAttribute('data-reg');w[r]+=.6;normW();
+      document.querySelectorAll('.regbtn').forEach(x=>x.classList.remove('surge'));b.classList.add('surge');
+      assignRegions();
+      showToast('▲ Traffic surging to '+({us:'US-East',eu:'EU-West',ap:'APAC'})[r]+' — pool rebalancing.');
+      if(window.__simRenderStatic)window.__simRenderStatic();});
+  });
+
+  const bursts=[];
+  $('chaosBtn').addEventListener('click',()=>{
+    const al=routable();if(al.length<=1){showToast('Only one healthy node — raise traffic to scale out first.',true);return;}
+    const v=al[(Math.random()*al.length)|0];v.alive=false;
+    const c=center(v.id);bursts.push({x:c.x,y:c.y,t:0,col:C.dead});
+    parts.forEach(p=>{if(p.kind==='req'&&p.svc===v.id&&p.p<p.fwdLen)p.dying=true;});
     degradedUntil=performance.now()+1800;
     showToast('💥 Node failed — traffic rerouting to healthy instances, 0 dropped.',true);
     if(window.__simRenderStatic)window.__simRenderStatic();
   });
-  document.getElementById('healBtn').addEventListener('click',()=>{
-    let healed=false;pool.forEach(s=>{if(s.active&&!s.alive){s.alive=true;healed=true;const c=ctr(s.id);bursts.push({x:c.x,y:c.y,t:0,col:C.req});}});
-    showToast(healed?'✚ Cluster restored — all instances healthy.':'All instances already healthy.');
-    if(window.__simRenderStatic)window.__simRenderStatic();
-  });
+  $('healBtn').addEventListener('click',()=>{let h=false;pool.forEach(s=>{if(s.active&&!s.alive){s.alive=true;h=true;const c=center(s.id);bursts.push({x:c.x,y:c.y,t:0,col:C.us});}});showToast(h?'✚ Cluster restored — all instances healthy.':'All instances already healthy.');if(window.__simRenderStatic)window.__simRenderStatic();});
 
-  /* ---- node detail popover ---- */
-  const nd=document.getElementById('nodeDetail');
-  function openDetail(n){
-    document.getElementById('ndTitle').textContent=n.title;
-    document.getElementById('ndTag').textContent=n.tag;
-    document.getElementById('ndDesc').textContent=n.desc;
-    document.getElementById('ndStack').textContent=n.stack;
-    document.getElementById('ndIc').style.background=n.color;
-    document.getElementById('ndStory').hidden = (n.id!=='mongo');
-    nd.classList.add('show');
-  }
-  document.getElementById('ndClose').addEventListener('click',()=>nd.classList.remove('show'));
-  document.getElementById('ndStory').addEventListener('click',()=>{if(window.__openStory)window.__openStory();});
-  function pick(mx,my){let hit=null;all().forEach(n=>{if(n.vis<0.1)return;const p=px(n);if(Math.hypot(mx-p.x,my-p.y)<p.r+9)hit=n;});return hit;}
-  canvas.addEventListener('click',ev=>{const r=canvas.getBoundingClientRect();const h=pick(ev.clientX-r.left,ev.clientY-r.top);if(h)openDetail(h);else nd.classList.remove('show');});
-  canvas.addEventListener('mousemove',ev=>{const r=canvas.getBoundingClientRect();canvas.style.cursor=pick(ev.clientX-r.left,ev.clientY-r.top)?'pointer':'default';});
+  const nd=$('nodeDetail');
+  function openDetail(n){$('ndTitle').textContent=n.title||(Array.isArray(n.label)?n.label.join(' '):n.label);$('ndTag').textContent=n.tag||'';$('ndDesc').textContent=n.desc||'';$('ndStack').textContent=n.stack||'';$('ndIc').style.background=n.color||C.us;$('ndStory').hidden=(n.id!=='mongoP');nd.classList.add('show');}
+  $('ndClose').addEventListener('click',()=>nd.classList.remove('show'));
+  $('ndStory').addEventListener('click',()=>{if(window.__openStory)window.__openStory();});
+  function pickNode(mx,my){let hit=null;all().forEach(n=>{if(n.vis!=null&&n.vis<.1)return;const p=px(n);if(Math.hypot(mx-p.x,my-p.y)<p.r+9)hit=n;});return hit;}
+  canvas.addEventListener('click',e=>{const r=canvas.getBoundingClientRect();const h=pickNode(e.clientX-r.left,e.clientY-r.top);if(h)openDetail(h);else nd.classList.remove('show');});
+  canvas.addEventListener('mousemove',e=>{const r=canvas.getBoundingClientRect();canvas.style.cursor=pickNode(e.clientX-r.left,e.clientY-r.top)?'pointer':'default';});
 
-  /* ---- resize ---- */
-  function resize(){const r=wrap.getBoundingClientRect();W=r.width;H=Math.max(r.height,440);canvas.width=W*DPR;canvas.height=H*DPR;canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);}
+  function resize(){const r=wrap.getBoundingClientRect();W=r.width;H=Math.max(r.height,560);canvas.width=W*DPR;canvas.height=H*DPR;canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);}
   new ResizeObserver(()=>{resize();if(window.__simRenderStatic)window.__simRenderStatic();}).observe(wrap);resize();
 
-  /* ---- spark sparkline ---- */
-  const spark=document.getElementById('spark'),sx=spark.getContext('2d');
-  const hist=[];let SW=0,SH=0;
+  const spark=$('spark'),sx=spark.getContext('2d');const hist=[];let SW=0,SH=0;
   function sparkResize(){const r=spark.getBoundingClientRect();SW=r.width;SH=r.height;spark.width=SW*DPR;spark.height=SH*DPR;sx.setTransform(DPR,0,0,DPR,0,0);}
   new ResizeObserver(sparkResize).observe(spark);sparkResize();
-  function drawSpark(){
-    sx.clearRect(0,0,SW,SH);
-    if(hist.length<2)return;
-    const max=528, pad=4;
-    const step=(SW-pad*2)/(60-1);
-    sx.beginPath();
-    hist.forEach((v,i)=>{const x=pad+i*step;const y=SH-pad-(v/max)*(SH-pad*2);i?sx.lineTo(x,y):sx.moveTo(x,y);});
-    const grd=sx.createLinearGradient(0,0,SW,0);grd.addColorStop(0,hexA('#37e8c0',.9));grd.addColorStop(1,hexA('#5b9dff',.9));
-    sx.strokeStyle=grd;sx.lineWidth=2;sx.lineJoin='round';sx.stroke();
-    // fill
-    sx.lineTo(pad+(hist.length-1)*step,SH-pad);sx.lineTo(pad,SH-pad);sx.closePath();
-    sx.fillStyle=hexA('#37e8c0',.10);sx.fill();
-  }
+  function drawSpark(){sx.clearRect(0,0,SW,SH);if(hist.length<2)return;const max=560,pad=4,step=(SW-pad*2)/59;sx.beginPath();hist.forEach((v,i)=>{const x=pad+i*step,y=SH-pad-(v/max)*(SH-pad*2);i?sx.lineTo(x,y):sx.moveTo(x,y);});const g=sx.createLinearGradient(0,0,SW,0);g.addColorStop(0,hexA('#37e8c0',.9));g.addColorStop(1,hexA('#5b9dff',.9));sx.strokeStyle=g;sx.lineWidth=2;sx.lineJoin='round';sx.stroke();sx.lineTo(pad+(hist.length-1)*step,SH-pad);sx.lineTo(pad,SH-pad);sx.closePath();sx.fillStyle=hexA('#37e8c0',.10);sx.fill();}
 
-  /* ---- node drawing ---- */
+  function edges(){
+    const e=[['us','cdn'],['eu','cdn'],['ap','cdn'],['cdn','lb'],['lb','gw']];
+    routable().forEach(s=>{e.push(['gw',s.id]);e.push([s.id,'mongoP']);e.push([s.id,'redis1']);e.push([s.id,'kafka']);});
+    e.push(['mongoP','mongoS1']);e.push(['mongoP','mongoS2']);
+    e.push(['redis0','redis1']);e.push(['redis1','redis2']);
+    e.push(['kafka','cA']);e.push(['kafka','cN']);e.push(['kafka','cS']);
+    return e;
+  }
+  function caption(txt,nx,ny,col){ctx.save();ctx.fillStyle=col;ctx.globalAlpha=.85;ctx.font='600 10px JetBrains Mono, monospace';ctx.textAlign='center';ctx.fillText(txt,nx*W,ny*H);ctx.restore();}
+  function glyphs(n,p){
+    if(n.id==='kafka'){for(let i=0;i<3;i++){const bx=p.x-9+i*9,by=p.y;ctx.fillStyle=hexA('#a583ff',.85);ctx.fillRect(bx-2,by-7,4,14);}}
+  }
   function drawNode(n,t){
-    const p=px(n);if(n.vis<0.02)return;
+    const p=px(n);if(n.vis!=null&&n.vis<.02)return;
     const dead=(n.type==='svc'&&!n.alive);
-    const col=dead?C.dead:n.color;
-    const pulse=0.5+0.5*Math.sin(t/600+n.nx*9);
-    ctx.save();ctx.globalAlpha=Math.min(1,n.vis);
-    ctx.shadowColor=col;ctx.shadowBlur=dead?5:(11+pulse*9);
+    const col=dead?C.dead:(n.color||C.us);
+    const pulse=.5+.5*Math.sin(t/600+n.nx*9);
+    const vv=(n.vis==null?1:n.vis);
+    ctx.save();ctx.globalAlpha=Math.min(1,vv);
+    ctx.shadowColor=col;ctx.shadowBlur=dead?5:(9+pulse*8);
     ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fillStyle='rgba(12,19,33,.94)';ctx.fill();
-    ctx.lineWidth=2;ctx.strokeStyle=col;ctx.globalAlpha=(dead?.6:1)*Math.min(1,n.vis);ctx.stroke();
-    // ring for active svc
-    if(n.type==='svc'&&!dead){ctx.shadowBlur=0;ctx.globalAlpha=0.25*n.vis;ctx.beginPath();ctx.arc(p.x,p.y,p.r+4+pulse*2,0,7);ctx.strokeStyle=col;ctx.lineWidth=1;ctx.stroke();}
+    ctx.lineWidth=2;ctx.strokeStyle=col;ctx.globalAlpha=(dead?.6:1)*vv;ctx.stroke();
     ctx.restore();
-    if(dead){ctx.save();ctx.globalAlpha=.9*n.vis;ctx.strokeStyle=C.dead;ctx.lineWidth=2.4;const o=p.r*.42;ctx.beginPath();ctx.moveTo(p.x-o,p.y-o);ctx.lineTo(p.x+o,p.y+o);ctx.moveTo(p.x+o,p.y-o);ctx.lineTo(p.x-o,p.y+o);ctx.stroke();ctx.restore();}
-    ctx.save();ctx.globalAlpha=Math.min(1,n.vis);ctx.fillStyle=dead?'#8693a8':'#dce8fa';
-    ctx.font='600 '+Math.max(8,p.r*0.33)+'px JetBrains Mono, monospace';ctx.textAlign='center';ctx.textBaseline='middle';
-    const lines=n.label.split('\\n');lines.forEach((ln,i)=>ctx.fillText(ln,p.x,p.y+(i-(lines.length-1)/2)*(p.r*0.4)));
+    glyphs(n,p);
+    if(dead){ctx.save();ctx.strokeStyle=C.dead;ctx.lineWidth=2.2;const o=p.r*.42;ctx.beginPath();ctx.moveTo(p.x-o,p.y-o);ctx.lineTo(p.x+o,p.y+o);ctx.moveTo(p.x+o,p.y-o);ctx.lineTo(p.x-o,p.y+o);ctx.stroke();ctx.restore();}
+    ctx.save();ctx.globalAlpha=Math.min(1,vv);ctx.fillStyle=dead?'#8693a8':'#dce8fa';
+    ctx.font='600 '+Math.max(8,p.r*.34)+'px JetBrains Mono, monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+    const lines=Array.isArray(n.label)?n.label:[String(n.label||'')];
+    lines.forEach((ln,i)=>ctx.fillText(ln,p.x,p.y+(i-(lines.length-1)/2)*(p.r*.42)));
     ctx.restore();
   }
 
-  const lerp=(a,b,t)=>a+(b-a)*t;
-  let last=performance.now(),spawnAcc=0,histAcc=0;
-
+  let last=performance.now(),accReq=0,accEvt=0,accRepl=0,histAcc=0,wAcc=0;
   function frame(now){
     const dt=Math.min(50,now-last)/1000;last=now;
     ctx.clearRect(0,0,W,H);
+    w.us+=(base.us-w.us)*Math.min(1,dt*.18);w.eu+=(base.eu-w.eu)*Math.min(1,dt*.18);w.ap+=(base.ap-w.ap)*Math.min(1,dt*.18);normW();
+    wAcc+=dt;if(wAcc>.5){wAcc=0;assignRegions();}
+    pool.forEach(s=>{const tv=s.active?1:0;s.vis+=(tv-s.vis)*Math.min(1,dt*6);if(s.tny!=null)s.ny+=(s.tny-s.ny)*Math.min(1,dt*7);});
 
-    // animate node vis + positions
-    pool.forEach(s=>{const target=s.active?1:0;s.vis+=(target-s.vis)*Math.min(1,dt*6);if(s.tny!=null)s.ny+=(s.tny-s.ny)*Math.min(1,dt*7);});
+    const want=targetRps();const healthy=routable().length,act=activeServices().length;
 
-    const want=targetRps();
+    ctx.lineWidth=1.2;
+    edges().forEach(pair=>{const na=byId(pair[0]),nb=byId(pair[1]);if(!na||!nb)return;const s=seg(pair[0],pair[1]);const dead=(nb.type==='svc'&&!nb.alive)||(na.type==='svc'&&!na.alive);const av=Math.min(na.vis==null?1:na.vis,nb.vis==null?1:nb.vis);ctx.globalAlpha=av;ctx.strokeStyle=dead?hexA('#ff5f63',.13):hexA('#3a5891',.24);ctx.beginPath();ctx.moveTo(s.A.x,s.A.y);ctx.bezierCurveTo(s.c1.x,s.c1.y,s.c2.x,s.c2.y,s.B.x,s.B.y);ctx.stroke();ctx.globalAlpha=1;});
 
-    // ---- edges with activity glow ----
-    ctx.lineWidth=1.3;
-    logicalEdges().forEach(([a,b])=>{
-      const na=byId(a),nb=byId(b);if(!na||!nb)return;
-      const s=seg(a,b);
-      const dead=(nb.type==='svc'&&!nb.alive)||(na.type==='svc'&&!na.alive);
-      const act=Math.min(1,(edgeAct[edgeKey(a,b)]||0));
-      const av=Math.min(na.vis,nb.vis);
-      ctx.globalAlpha=av;
-      ctx.strokeStyle=dead?hexA('#ff5f63',.16):hexA('#3a5891',.30+act*0.5);
-      ctx.shadowBlur=act>0.05&&!dead?6*act:0;ctx.shadowColor=C.req;
-      ctx.beginPath();ctx.moveTo(s.A.x,s.A.y);ctx.bezierCurveTo(s.c1.x,s.c1.y,s.c2.x,s.c2.y,s.B.x,s.B.y);ctx.stroke();
-      ctx.globalAlpha=1;ctx.shadowBlur=0;
-    });
-    // decay activity
-    for(const k in edgeAct){edgeAct[k]*=0.90;if(edgeAct[k]<0.01)delete edgeAct[k];}
+    accReq+=want*dt;while(accReq>=1){spawnReq();accReq--;}
+    accEvt+=want*.12*dt;while(accEvt>=1){spawnEvent();accEvt--;}
+    accRepl+=2.6*dt;while(accRepl>=1){spawnRepl();accRepl--;}
 
-    // ---- spawn (time-based, smooth) ----
-    spawnAcc+=want*dt;
-    while(spawnAcc>=1){spawn();spawnAcc--;}
-
-    // ---- update + draw requests ----
-    const segCount=8; // round trip segments
-    for(let i=reqs.length-1;i>=0;i--){
-      const r=reqs[i];
-      // death handling: freeze at the dead service node
-      if(r.dying){
-        r.deadT+=dt;
-        const c=ctr(r.svc);const dp=px(byId(r.svc));
-        const a=Math.max(0,1-r.deadT*1.6);
-        ctx.save();ctx.globalAlpha=a;ctx.shadowColor=C.dead;ctx.shadowBlur=10;ctx.fillStyle=C.dead;
-        ctx.beginPath();ctx.arc(c.x,c.y,2.4+r.deadT*8,0,7);ctx.fill();ctx.restore();
-        if(r.deadT>0.7){reqs.splice(i,1);}
-        continue;
-      }
+    for(let i=parts.length-1;i>=0;i--){
+      const r=parts[i];
+      if(r.dying){r.deadT+=dt;const c=center(r.svc);const a=Math.max(0,1-r.deadT*1.6);ctx.save();ctx.globalAlpha=a;ctx.shadowColor=C.dead;ctx.shadowBlur=10;ctx.fillStyle=C.dead;ctx.beginPath();ctx.arc(c.x,c.y,2.4+r.deadT*8,0,7);ctx.fill();ctx.restore();if(r.deadT>.7)parts.splice(i,1);continue;}
+      const segCount=r.route.length-1;
       r.p+=r.speed*(40*dt)*(0.85+want/600);
       const si=Math.floor(r.p);
-      if(si>=segCount){servedTotal++;reqs.splice(i,1);continue;}
-      const lt=r.p-si;
-      const aId=r.route[si], bId=r.route[si+1];
-      // if heading into the dead svc, trigger dying when about to reach it
-      const s=seg(aId,bId);
-      const pt=bez(s,lt);
-      const fwd=r.p<r.fwdLen;
-      const col=fwd?C.req:C.res;
-      // edge activity
-      edgeAct[edgeKey(aId,bId)]=Math.min(1,(edgeAct[edgeKey(aId,bId)]||0)+0.12);
-      // comet
-      const rad=fwd?3.0:2.7;
-      ctx.save();ctx.shadowColor=col;ctx.shadowBlur=10;ctx.fillStyle=col;
-      ctx.beginPath();ctx.arc(pt.x,pt.y,rad,0,7);ctx.fill();
-      // short trail along curve
-      const tt=Math.max(0,lt-0.10);const pt2=bez(s,tt);
-      ctx.globalAlpha=.35;ctx.beginPath();ctx.arc(pt2.x,pt2.y,rad*0.55,0,7);ctx.fill();
-      ctx.restore();
+      if(si>=segCount){if(r.kind==='req')served++;parts.splice(i,1);continue;}
+      const lt=r.p-si;const s=seg(r.route[si],r.route[si+1]);const q=bez(s,lt);
+      const rad=r.kind==='repl'?2.0:(r.kind==='event'?2.5:3.0);
+      ctx.save();ctx.shadowColor=r.col;ctx.shadowBlur=r.kind==='repl'?5:9;ctx.fillStyle=r.col;ctx.beginPath();ctx.arc(q.x,q.y,rad,0,7);ctx.fill();
+      const tt=Math.max(0,lt-.09),q2=bez(s,tt);ctx.globalAlpha=.32;ctx.beginPath();ctx.arc(q2.x,q2.y,rad*.55,0,7);ctx.fill();ctx.restore();
     }
 
-    // ---- bursts (rings) ----
-    for(let i=bursts.length-1;i>=0;i--){const b=bursts[i];b.t+=dt;const rr=10+b.t*70;const a=Math.max(0,1-b.t*1.4);if(a<=0){bursts.splice(i,1);continue;}ctx.save();ctx.globalAlpha=a;ctx.strokeStyle=b.col;ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y,rr,0,7);ctx.stroke();ctx.restore();}
+    for(let i=bursts.length-1;i>=0;i--){const b=bursts[i];b.t+=dt;const rr=10+b.t*70,a=Math.max(0,1-b.t*1.4);if(a<=0){bursts.splice(i,1);continue;}ctx.save();ctx.globalAlpha=a;ctx.strokeStyle=b.col;ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y,rr,0,7);ctx.stroke();ctx.restore();}
 
-    // ---- nodes ----
     all().forEach(n=>drawNode(n,now));
+    caption('MongoDB · replica set',.665,.255,hexA('#37e8c0',.9));
+    caption('Redis · sharded',.648,.525,hexA('#ff6b6b',.9));
+    caption('Kafka · consumers',.74,.99,hexA('#a583ff',.9));
 
-    // ---- metrics ----
-    const healthySvc=routableServices().length;
-    const activeSvc=activeServices().length;
-    const perNode=want/Math.max(1,healthySvc);
-    const baseLat=18+(want/528)*55+(activeSvc-healthySvc)*45+Math.max(0,perNode-150)*0.22;
+    const perNode=want/Math.max(1,healthy);
+    const baseLat=18+(want/528)*52+(act-healthy)*45+Math.max(0,perNode-150)*.22;
     mLat=lerp(mLat,baseLat,Math.min(1,dt*3));
-    mRps=lerp(mRps,want*(healthySvc>0?1:0),Math.min(1,dt*4));
-    const degraded=now<degradedUntil||healthySvc<activeSvc;
-    const upTarget=healthySvc===0?96.5:degraded?99.2:99.97;
-    mUp=lerp(mUp,upTarget,Math.min(1,dt*2.5));
-
+    mRps=lerp(mRps,want*(healthy>0?1:0),Math.min(1,dt*4));
+    const degraded=now<degradedUntil||healthy<act;
+    mUp=lerp(mUp,healthy===0?96.5:degraded?99.2:99.97,Math.min(1,dt*2.5));
     elRps.textContent=Math.round(mRps);
     elLat.innerHTML=Math.round(mLat)+'<span style="font-size:.6em"> ms</span>';
-    elUp.innerHTML=(mUp).toFixed(mUp>=99.9?2:1)+'<span style="font-size:.6em">%</span>';
-    elNodes.textContent=healthySvc;
-    const bad=healthySvc<activeSvc;
-    statusEl.classList.toggle('degraded',bad);
-    statusTxt.textContent=healthySvc===0?'CRITICAL':bad?'DEGRADED — FAILOVER':'HEALTHY';
-
-    // spark history (~10/s)
-    histAcc+=dt;
-    if(histAcc>0.1){histAcc=0;hist.push(mRps);if(hist.length>60)hist.shift();sparkNow.textContent=Math.round(mRps);drawSpark();}
-
+    elUp.innerHTML=mUp.toFixed(mUp>=99.9?2:1)+'<span style="font-size:.6em">%</span>';
+    elNodes.textContent=healthy;
+    if(elR.us)elR.us.textContent=Math.round(mRps*w.us);
+    if(elR.eu)elR.eu.textContent=Math.round(mRps*w.eu);
+    if(elR.ap)elR.ap.textContent=Math.round(mRps*w.ap);
+    const bad=healthy<act;statusEl.classList.toggle('degraded',bad);statusTxt.textContent=healthy===0?'CRITICAL':bad?'DEGRADED — FAILOVER':'HEALTHY';
+    histAcc+=dt;if(histAcc>.1){histAcc=0;hist.push(mRps);if(hist.length>60)hist.shift();sparkNow.textContent=Math.round(mRps);drawSpark();}
     requestAnimationFrame(frame);
   }
 
-  /* ---- reduced-motion: one calm static render, no animation loop ---- */
-  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
   function renderStatic(){
-    pool.forEach(s=>{s.vis=s.active?1:0; if(s.tny!=null)s.ny=s.tny;});
-    ctx.clearRect(0,0,W,H);
-    ctx.lineWidth=1.3;
-    logicalEdges().forEach(([a,b])=>{const na=byId(a),nb=byId(b);if(!na||!nb)return;const s=seg(a,b);const dead=(nb.type==='svc'&&!nb.alive)||(na.type==='svc'&&!na.alive);ctx.globalAlpha=Math.min(na.vis,nb.vis);ctx.strokeStyle=dead?hexA('#ff5f63',.16):hexA('#3a5891',.42);ctx.beginPath();ctx.moveTo(s.A.x,s.A.y);ctx.bezierCurveTo(s.c1.x,s.c1.y,s.c2.x,s.c2.y,s.B.x,s.B.y);ctx.stroke();ctx.globalAlpha=1;});
-    routableServices().forEach(svc=>{['mongo','redis','kafka'].forEach(bk=>{const route=['user','lb','gw',svc.id,bk];const segs=route.length-1;[0.3,0.65,0.92].forEach((tt,idx)=>{const pos=tt*segs;const si=Math.min(segs-1,Math.floor(pos));const lt=pos-si;const s=seg(route[si],route[si+1]);const pt=bez(s,lt);const col=idx<2?C.req:C.res;ctx.save();ctx.shadowColor=col;ctx.shadowBlur=8;ctx.fillStyle=col;ctx.beginPath();ctx.arc(pt.x,pt.y,3,0,7);ctx.fill();ctx.restore();});});});
+    pool.forEach(s=>{s.vis=s.active?1:0;if(s.tny!=null)s.ny=s.tny;});assignRegions();
+    ctx.clearRect(0,0,W,H);ctx.lineWidth=1.2;
+    edges().forEach(pair=>{const na=byId(pair[0]),nb=byId(pair[1]);if(!na||!nb)return;const s=seg(pair[0],pair[1]);ctx.globalAlpha=Math.min(na.vis==null?1:na.vis,nb.vis==null?1:nb.vis);ctx.strokeStyle=hexA('#3a5891',.3);ctx.beginPath();ctx.moveTo(s.A.x,s.A.y);ctx.bezierCurveTo(s.c1.x,s.c1.y,s.c2.x,s.c2.y,s.B.x,s.B.y);ctx.stroke();ctx.globalAlpha=1;});
+    routable().forEach(svc=>{const col=({us:C.us,eu:C.eu,ap:C.ap})[svc.reg];const route=[svc.reg,'cdn','lb','gw',svc.id,'redis1'];const segs=route.length-1;[.4,.72].forEach(tt=>{const pos=tt*segs,si=Math.min(segs-1,Math.floor(pos)),lt=pos-si;const s=seg(route[si],route[si+1]),q=bez(s,lt);ctx.save();ctx.shadowColor=col;ctx.shadowBlur=8;ctx.fillStyle=col;ctx.beginPath();ctx.arc(q.x,q.y,3,0,7);ctx.fill();ctx.restore();});});
     all().forEach(n=>drawNode(n,1000));
-    const want=targetRps(),healthySvc=routableServices().length,activeSvc=activeServices().length;
-    elRps.textContent=want;
-    elLat.innerHTML=Math.round(18+(want/528)*55)+'<span style="font-size:.6em"> ms</span>';
-    const degraded=healthySvc<activeSvc;mUp=degraded?99.2:99.97;
-    elUp.innerHTML=mUp.toFixed(2)+'<span style="font-size:.6em">%</span>';
-    elNodes.textContent=healthySvc;
-    statusEl.classList.toggle('degraded',degraded);
-    statusTxt.textContent=healthySvc===0?'CRITICAL':degraded?'DEGRADED — FAILOVER':'HEALTHY';
+    caption('MongoDB · replica set',.665,.255,hexA('#37e8c0',.9));
+    caption('Redis · sharded',.648,.525,hexA('#ff6b6b',.9));
+    caption('Kafka · consumers',.74,.99,hexA('#a583ff',.9));
+    const want=targetRps(),healthy=routable().length,act=activeServices().length;
+    elRps.textContent=want;elLat.innerHTML=Math.round(18+(want/528)*52)+'<span style="font-size:.6em"> ms</span>';
+    const degraded=healthy<act;mUp=degraded?99.2:99.97;elUp.innerHTML=mUp.toFixed(2)+'<span style="font-size:.6em">%</span>';elNodes.textContent=healthy;
+    if(elR.us)elR.us.textContent=Math.round(want*w.us);if(elR.eu)elR.eu.textContent=Math.round(want*w.eu);if(elR.ap)elR.ap.textContent=Math.round(want*w.ap);
+    statusEl.classList.toggle('degraded',degraded);statusTxt.textContent=healthy===0?'CRITICAL':degraded?'DEGRADED — FAILOVER':'HEALTHY';
     hist.length=0;for(let i=0;i<60;i++)hist.push(want);sparkNow.textContent=want;drawSpark();
   }
   window.__simRenderStatic=()=>{if(REDUCED)renderStatic();};
-
-  if(REDUCED){ renderStatic(); }
-  else{ requestAnimationFrame(frame); }
+  if(REDUCED){renderStatic();}else{requestAnimationFrame(frame);}
 })();
 </script>
 <script>
