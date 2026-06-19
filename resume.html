@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jeremiah Seagraves — Résumé · Senior Java Backend Engineer</title>
+<meta name="description" content="Résumé of Jeremiah Seagraves — Senior Java Backend Engineer. 8+ years Java/Spring, AWS Certified. Distributed systems for UnitedHealth, OpenTable, Nordstrom, Expedia." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#16202e;
+    --body:#33414f;
+    --muted:#6a7888;
+    --line:#dfe4ea;
+    --accent:#0a7d68;       /* teal that stays legible on white & in print */
+    --accent-2:#0e6aa8;
+    --paper:#ffffff;
+    --bg:#eef1f5;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+    --display:'Sora','Inter',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--body);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent-2);text-decoration:none}
+
+  /* screen toolbar (hidden in print) */
+  .toolbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:14px;justify-content:center;padding:12px 16px;background:#0c1422;color:#e9f0fb;font-family:var(--mono);font-size:.85rem}
+  .toolbar b{color:#37e8c0}
+  .toolbar button{font-family:var(--sans);font-weight:600;font-size:.85rem;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;background:linear-gradient(120deg,#37e8c0,#5b9dff);color:#06121a}
+  .toolbar button:hover{filter:brightness(1.05)}
+
+  .page{max-width:8.5in;margin:24px auto;background:var(--paper);box-shadow:0 10px 40px rgba(20,30,46,.12);padding:0.5in 0.62in;border-radius:4px}
+
+  header.r-head{border-bottom:2px solid var(--accent);padding-bottom:11px;margin-bottom:13px}
+  .r-head h1{font-family:var(--display);font-size:23pt;font-weight:800;color:var(--ink);letter-spacing:-.5px;line-height:1.02}
+  .r-head .title{font-family:var(--display);font-size:11.5pt;font-weight:600;color:var(--accent);margin-top:2px}
+  .r-head .meta{font-family:var(--mono);font-size:8.2pt;color:var(--muted);margin-top:7px;line-height:1.6}
+  .r-head .meta a{color:var(--body)}
+  .r-head .meta .sep{color:var(--line)}
+
+  section.r{margin-bottom:11px}
+  h2.r-h{font-family:var(--mono);font-size:8.8pt;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:4px;margin-bottom:8px;break-after:avoid;page-break-after:avoid}
+
+  .summary{font-size:9.6pt;color:var(--body)}
+  .summary strong{color:var(--ink);font-weight:600}
+
+  /* skills */
+  .skills{display:grid;gap:4px}
+  .srow{font-size:9.3pt;display:grid;grid-template-columns:140px 1fr;gap:10px}
+  .srow .k{font-weight:600;color:var(--ink)}
+  .srow .v{color:var(--body)}
+  @media(max-width:520px){.srow{grid-template-columns:1fr;gap:1px}}
+
+  /* experience */
+  .job{margin-bottom:10px}
+  .job .top,.job .org,.job .client{break-after:avoid;page-break-after:avoid}
+  .job li{break-inside:avoid;page-break-inside:avoid}
+  .job .top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .job .role{font-family:var(--display);font-size:10.8pt;font-weight:700;color:var(--ink)}
+  .job .dates{font-family:var(--mono);font-size:8.4pt;color:var(--muted);white-space:nowrap}
+  .job .org{font-size:9.4pt;color:var(--body);margin:1px 0 1px}
+  .job .org b{color:var(--accent);font-weight:600}
+  .job .client{font-family:var(--mono);font-size:8.1pt;color:var(--muted);margin-bottom:5px}
+  .job ul{list-style:none;margin:0}
+  .job li{position:relative;padding-left:14px;margin-bottom:2.5px;font-size:9.3pt;line-height:1.4;color:var(--body)}
+  .job li::before{content:'';position:absolute;left:2px;top:7px;width:4px;height:4px;border-radius:50%;background:var(--accent)}
+  .job li strong{color:var(--ink);font-weight:600}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:520px){.two{grid-template-columns:1fr;gap:10px}}
+  .ed .role{font-family:var(--display);font-size:10.5pt;font-weight:700;color:var(--ink)}
+  .ed .sub{font-size:9.4pt;color:var(--muted);font-family:var(--mono)}
+
+  @media print{
+    /* margin:0 makes browsers drop the date/title/URL header & footer */
+    @page{margin:0}
+    html,body{background:#fff}
+    .toolbar{display:none!important}
+    /* padding on the page provides consistent left/right margins on every sheet */
+    .page{max-width:none;margin:0;box-shadow:none;border-radius:0;padding:11mm 13mm}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <span>This résumé matches your portfolio site. <b>Print → Save as PDF</b> for a clean copy.</span>
+  <button onclick="window.print()">🖨 Save as PDF</button>
+</div>
+
+<div class="page">
+  <header class="r-head">
+    <h1>Jeremiah Seagraves</h1>
+    <div class="title">Senior Java Backend Engineer</div>
+    <div class="meta">
+      8+ yrs Java · 7+ yrs Spring · AWS Certified Developer – Associate (2021) · B.SE.<br/>
+      <a href="mailto:jeremiah.seagraves@gmail.com">jeremiah.seagraves@gmail.com</a> <span class="sep">·</span>
+      <a href="https://github.com/JeremiahSeagraves">github.com/JeremiahSeagraves</a> <span class="sep">·</span>
+      <a href="https://www.linkedin.com/in/jeremiahseagraves/">linkedin.com/in/jeremiahseagraves</a> <span class="sep">·</span>
+      <a href="https://jeremiahseagraves.github.io/">jeremiahseagraves.github.io</a> <span class="sep">·</span>
+      Open to remote / contract
+    </div>
+  </header>
+
+  <section class="r">
+    <h2 class="r-h">Professional Summary</h2>
+    <p class="summary">Senior Java Backend Engineer with <strong>8+ years</strong> designing and operating distributed systems, microservices, and cloud-native APIs for healthcare, travel, and e-commerce platforms at scale. Deep expertise in <strong>Java (8–21)</strong> and the <strong>Spring</strong> ecosystem, with a track record of measurable impact — <strong>85% lower sync latency</strong>, <strong>99.9% uptime</strong>, and onboarding <strong>14,000+ businesses</strong>. <strong>AWS Certified Developer – Associate.</strong> Known for resilient, observable, well-tested systems and for working closely across product, design, and QA as an integrated member of cross-functional teams.</p>
+  </section>
+
+  <section class="r">
+    <h2 class="r-h">Core Skills</h2>
+    <div class="skills">
+      <div class="srow"><span class="k">Languages</span><span class="v">Java 8–21, Python, SQL, Kotlin, TypeScript, PHP</span></div>
+      <div class="srow"><span class="k">Frameworks &amp; APIs</span><span class="v">Spring (Boot, MVC, WebFlux, Data JPA, Core IoC), gRPC, REST</span></div>
+      <div class="srow"><span class="k">Data &amp; Messaging</span><span class="v">MongoDB (Change Streams), PostgreSQL, MySQL, Cassandra, DynamoDB, Redis, Apache Kafka, AVRO</span></div>
+      <div class="srow"><span class="k">Cloud &amp; DevOps</span><span class="v">AWS (Lambda, ECS, S3, EBS, DynamoDB, DocumentDB), GitLab CI, Jenkins, TeamCity, Liquibase, New Relic, Grafana, Vault</span></div>
+      <div class="srow"><span class="k">Testing &amp; Quality</span><span class="v">JUnit, AssertJ, Hamcrest, Mockito, Powermock, JaCoCo, Karate, JMeter, SonarQube</span></div>
+      <div class="srow"><span class="k">Practices</span><span class="v">Microservices, distributed systems, idempotency &amp; retries, zero-downtime deployment, CI/CD, Agile/Scrum, PRD→TDD, code review, AI-augmented workflows (Claude/Copilot)</span></div>
+    </div>
+  </section>
+
+  <section class="r">
+    <h2 class="r-h">Professional Experience</h2>
+
+    <div class="job">
+      <div class="top"><span class="role">Senior Java Backend Engineer</span><span class="dates">Dec 2023 – Dec 2025</span></div>
+      <div class="org"><b>Publicis Groupe</b></div>
+      <div class="client">Client: UnitedHealth Group (Optum) — Health Plan Administration Tool</div>
+      <ul>
+        <li>Led backend development for a Health Plan Administration Tool enabling dynamic rule configuration and seamless cross-system integration.</li>
+        <li>Designed a real-time <strong>MongoDB Change Stream</strong> system with resume tokens and distributed locking, <strong>reducing sync latency by 85%</strong> while sustaining <strong>99.9% uptime</strong>.</li>
+        <li>Built a functional document-processing pipeline that simplified rule mapping and <strong>cut conditional complexity by 40%</strong>, expanding edge-case test coverage.</li>
+        <li>Enabled <strong>zero-downtime deployment</strong> of business-rule updates to support rapid regulatory changes.</li>
+        <li>Developed APIs with Java 11/17/21, Spring MVC, and Spring Data JPA; implemented dependency injection via Spring Core IoC.</li>
+        <li>Translated PRDs → technical designs → Jira epics/stories using AI-assisted multi-pass analysis, producing clearer acceptance criteria, dependencies, and risk notes.</li>
+        <li>Wrote unit tests with JUnit, AssertJ, Hamcrest, and Powermock; authored TypeScript MongoDB migration scripts.</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="top"><span class="role">Senior Java Backend Engineer</span><span class="dates">Nov 2022 – Dec 2023</span></div>
+      <div class="org"><b>Encora (Nearsoft)</b></div>
+      <div class="client">Client: OpenTable</div>
+      <ul>
+        <li>Developed REST APIs and automation scripts that <strong>onboarded 14,000+ restaurants</strong>, improving platform scalability and operational efficiency.</li>
+        <li>Built APIs with Java 11/17 and Spring MVC/WebFlux; automated ETL processes in Python.</li>
+        <li>Implemented Kafka messaging and Redis caching; worked across PostgreSQL, MongoDB, and MySQL.</li>
+        <li>Monitored services with Grafana and optimized CI/CD pipelines in TeamCity; ensured quality with JaCoCo, JUnit, and Powermock.</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="top"><span class="role">Senior Java Cloud Engineer</span><span class="dates">May 2022 – Nov 2022</span></div>
+      <div class="org"><b>Zoolatech</b></div>
+      <div class="client">Client: Nordstrom — US &amp; Canada e-commerce platforms</div>
+      <ul>
+        <li>Refactored navigation algorithms and modernized CI/CD infrastructure across Nordstrom's storefronts.</li>
+        <li>Upgraded services from <strong>Java 8 to 11/17</strong>, migrated pipelines from GoCD to GitLab CI, and transitioned environments from Amazon Linux 1 to AL2.</li>
+        <li>Implemented features with AWS Lambda, EBS, S3, and ECS; integrated Kafka and Redis for messaging and caching.</li>
+        <li>Monitored systems with New Relic; ensured quality with JaCoCo, JUnit, and Powermock.</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="top"><span class="role">Senior Java / Kotlin Engineer</span><span class="dates">Mar 2021 – May 2022</span></div>
+      <div class="org"><b>Luxoft</b></div>
+      <div class="client">Client: Expedia Group</div>
+      <ul>
+        <li>Built <strong>gRPC and REST services</strong> for tax validation across Expedia platforms using Kotlin, Spring WebFlux, and Spring Boot.</li>
+        <li>Managed data with MongoDB, Cassandra, and Redis; ensured consistency via Kafka.</li>
+        <li>Created AVRO models and used Vault for secure secret management.</li>
+        <li>Conducted E2E and performance testing with Karate and JMeter; maintained quality with JaCoCo, JUnit, and Powermock.</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="top"><span class="role">Senior Java Backend Engineer</span><span class="dates">Oct 2019 – Mar 2021</span></div>
+      <div class="org"><b>Softtek</b></div>
+      <div class="client">Client: Intermountain Management LLC</div>
+      <ul>
+        <li>Led backend development for forecasting and COVID-19 tracking systems using Spring and AWS.</li>
+        <li>Built Spring-based forecasting tools for revenue and budget KPIs with <strong>optimized cold-start performance</strong> on AWS Lambda.</li>
+        <li>Developed a COVID-19 tracking system with QR scanning, face recognition, and thermal analysis for safe office return.</li>
+        <li>Created REST APIs and batch processing with Java 8 and Python; managed data with MySQL, DynamoDB, and DocumentDB.</li>
+        <li>Used Liquibase for database versioning and SonarQube for code quality; implemented CI/CD with Jenkins.</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="top"><span class="role">Software Solutions &amp; Full-Stack Engineer</span><span class="dates">Jan 2017 – Oct 2019</span></div>
+      <div class="org"><b>Regional Research Center "Dr. Hideyo Noguchi"</b></div>
+      <div class="client">Supported by the Kellogg's Foundation · Aligned with UN Sustainable Development Goals</div>
+      <ul>
+        <li>Designed and developed full-stack systems and mobile applications supporting agricultural trade and nonprofit initiatives — including dynamic pricing, inventory management, and offline order processing.</li>
+        <li>Built backend systems with PHP (Yii) and front-end interfaces with HTML, CSS, and JavaScript.</li>
+        <li>Developed REST APIs, batch CSV loaders, and dynamic reporting tools (Excel, PDF, Google Maps visualizations).</li>
+        <li>Created an Android app with offline synchronization for purchase/order tracking.</li>
+        <li>Led architectural design and conducted UAT with stakeholders; managed data with MySQL.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="two">
+    <section class="r ed">
+      <h2 class="r-h">Education</h2>
+      <div class="role">Bachelor of Software Engineering (B.SE.)</div>
+      <div class="sub">Software Engineering</div>
+    </section>
+    <section class="r ed">
+      <h2 class="r-h">Certification</h2>
+      <div class="role">AWS Certified Developer – Associate</div>
+      <div class="sub">Amazon Web Services · 2021</div>
+    </section>
+  </div>
+</div>
+</body>
+</html>
